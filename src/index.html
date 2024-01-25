@@ -7,18 +7,29 @@
     <link rel="stylesheet" href="css/main.css" />
   </head>
   <body>
-    <div class="form-container">
+    <button id="backButton" style="display: none" onclick="goBack()">
+      Back
+    </button>
+    <div id="formContainer" class="form-container">
       <form id="liftsForm">
         <div class="form-group">
           <label for="numFloors">Number of Floors:</label>
           <input type="number" id="numFloors" name="numFloors" required />
+          <span class="error-message" id="errorNumFloors"></span>
         </div>
         <div class="form-group">
           <label for="numLifts">Number of Lifts:</label>
           <input type="number" id="numLifts" name="numLifts" required />
+          <span class="error-message" id="errorNumLifts"></span>
         </div>
         <button type="button" onclick="stimulate()">Stimulate</button>
       </form>
+    </div>
+    <div id="liftContainer">
+      <div id="liftSimulation">
+        <div id="floors"></div>
+        <div id="lifts"></div>
+      </div>
     </div>
     <script src="js/main.js"></script>
   </body>
