@@ -24,6 +24,9 @@ function createFloors(numFloors, numLifts) {
         };
         floor.appendChild(upButton);
       }
+      var floorText = document.createElement("p");
+      floorText.innerText = `Floor ${floorNumber}`;
+      floor.appendChild(floorText);
       if (floorNumber > 0) {
         var downButton = document.createElement("button");
         downButton.innerText = "Down";
@@ -266,7 +269,7 @@ function stimulate() {
     // createLifts(parseInt(numLifts.value));
 
     initLiftSimulation(numFloors.value, numLifts.value);
-    document.getElementById("liftContainer").style.display = "block";
+    document.getElementById("liftSimulation").style.display = "block";
   }
 }
 
@@ -277,8 +280,8 @@ function goBack() {
 
   // Reset the form and update display properties
   form.reset();
-  document.getElementById("liftContainer").style.display = "none";
+  document.getElementById("liftSimulation").style.display = "none";
   formContainer.style.display = "block";
   backButton.style.display = "none";
 }
-initLiftSimulation(10, 3);
+initLiftSimulation(10, 6);

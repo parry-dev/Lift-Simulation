@@ -4,9 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Lifts</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="css/main.css" />
   </head>
   <body>
+    <div class="mainContainer">
     <button id="backButton" style="display: none" onclick="goBack()">
       Back
     </button>
@@ -25,12 +27,11 @@
         <button type="button" onclick="stimulate()">Stimulate</button>
       </form>
     </div>
-    <div id="liftContainer">
-      <div id="liftSimulation">
-        <div id="floors"></div>
-        <div id="lifts"></div>
-      </div>
+    <div id="liftSimulation">
+      <div id="floors"></div>
+      <div id="lifts"></div>
     </div>
+  </div>
     <script src="js/main.js"></script>
   </body>
 </html>
