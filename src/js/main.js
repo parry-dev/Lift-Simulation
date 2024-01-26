@@ -300,16 +300,16 @@ function stimulate() {
   errorNumLifts.style.display = "none";
 
   // Validate numFloors
-  if (!numFloors.value) {
+  if (!numFloors.value || numFloors.value <= 0) {
     errorNumFloors.style.display = "block";
-    errorNumFloors.textContent = "Please enter the number of floors.";
+    errorNumFloors.textContent = "Please enter the positive number of floors.";
     isValid = false;
   }
 
   // Validate numLifts
-  if (!numLifts.value) {
+  if (!numLifts.value || numLifts.value <= 0) {
     errorNumLifts.style.display = "block";
-    errorNumLifts.textContent = "Please enter the number of lifts.";
+    errorNumLifts.textContent = "Please enter the positive number of lifts.";
     isValid = false;
   }
 
