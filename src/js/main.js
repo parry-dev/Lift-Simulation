@@ -15,30 +15,87 @@ function createFloors(numFloors, numLifts) {
       floor.className = "floor";
       floor.id = "floor-" + floorNumber;
 
+      var buttonDiv = document.createElement("div");
+      buttonDiv.className = "actionButtons";
+
       // Create up and down buttons for each floor
+      // <div class="round-button"><div class="round-button-circle"><a href="http://example.com" class="round-button">Button!!</a></div></div>
       if (floorNumber < numFloors - 1) {
-        var upButton = document.createElement("button");
-        upButton.innerText = "Up";
-        upButton.onclick = function () {
+        var upOuterDiv = document.createElement("div");
+        upOuterDiv.className = "round-button";
+        var upInnerDiv = document.createElement("div");
+        upInnerDiv.className = "round-button-circle";
+        var upATag = document.createElement("a");
+        upATag.className = "round-button";
+        var upIcon = document.createElement("i");
+        upIcon.className = "fa fa-arrow-circle-up";
+        upIcon.style.fontSize = "24px";
+        upInnerDiv.onclick = function () {
           callLift(floorNumber, "up");
         };
-        floor.appendChild(upButton);
+        upOuterDiv.appendChild(upInnerDiv);
+        upInnerDiv.appendChild(upATag);
+        upATag.appendChild(upIcon);
+        buttonDiv.appendChild(upOuterDiv);
       }
+      if (floorNumber > 0) {
+        var downOuterDiv = document.createElement("div");
+        downOuterDiv.className = "round-button";
+        var downInnerDiv = document.createElement("div");
+        downInnerDiv.className = "round-button-circle";
+        var downATag = document.createElement("a");
+        downATag.className = "round-button";
+        var downIcon = document.createElement("i");
+        downIcon.className = "fa fa-arrow-circle-down";
+        downIcon.style.fontSize = "24px";
+        downInnerDiv.onclick = function () {
+          callLift(floorNumber, "down");
+        };
+        downOuterDiv.appendChild(downInnerDiv);
+        downInnerDiv.appendChild(downATag);
+        downATag.appendChild(downIcon);
+        buttonDiv.appendChild(downOuterDiv);
+      }
+      floor.appendChild(buttonDiv);
+
       var floorText = document.createElement("p");
       floorText.innerText = `Floor ${floorNumber}`;
       floor.appendChild(floorText);
-      if (floorNumber > 0) {
-        var downButton = document.createElement("button");
-        downButton.innerText = "Down";
-        downButton.onclick = function () {
-          callLift(floorNumber, "down");
-        };
-        floor.appendChild(downButton);
-      }
 
       floorsContainer.appendChild(floor);
     })(i); // Pass the current value of i into the IIFE
   }
+}
+
+function responsiveDivSizes(numLifts) {
+  var liftsContainer = document.getElementById("lifts");
+  var liftSimulation = document.getElementById("liftSimulation");
+  if (window.innerWidth >= numLifts*60 + 100) {
+    var mainContainerWidth = numLifts*60 + 100;
+    // console.log("mainContainerWidth 111==>>> ", mainContainerWidth);
+    liftSimulation.style.width = `calc(${mainContainerWidth}px)`;
+    var perLiftWidth = 60;
+  } else {
+    var perLiftWidth = (window.innerWidth - 100)/numLifts;
+    if (perLiftWidth < 30){
+      var mainContainerWidth = numLifts*30 + 100;
+      // console.log("mainContainerWidth 222==>>> ", mainContainerWidth);
+      liftSimulation.style.minWidth = `calc(${mainContainerWidth}px)`;
+    } else {
+      var mainContainerWidth = perLiftWidth * numLifts;
+      // console.log("mainContainerWidth 333==>>> ", perLiftWidth * numLifts);
+      liftSimulation.style.width = `calc(${mainContainerWidth}px)`;
+    }
+  }
+  // console.log("perLiftWidth ==>>> ", perLiftWidth);
+  var x = document.getElementsByClassName("lift");
+  for (var i = 0; i < x.length; i++) {
+      x[i].style.width = `${perLiftWidth}px`;
+  }
+  var floorElement = document.getElementById("floor-0");
+  liftsContainer.style.width = `calc(${mainContainerWidth}px - 100px)`;
+  var actionButtons = floorElement.querySelector(".actionButtons");
+  liftsContainer.style.left = `${actionButtons.offsetLeft + actionButtons.offsetWidth + 20}px`;
 }
 
 function createLifts(numLifts) {
@@ -269,6 +326,7 @@ function stimulate() {
     // createLifts(parseInt(numLifts.value));
 
     initLiftSimulation(numFloors.value, numLifts.value);
+    responsiveDivSizes(numLifts.value)
     document.getElementById("liftSimulation").style.display = "block";
   }
 }
@@ -285,3 +343,9 @@ function goBack() {
   backButton.style.display = "none";
 }
 initLiftSimulation(10, 6);
+responsiveDivSizes(6);
+
+window.addEventListener("resize", function(event) {
+  var form = document.getElementById("liftsForm");
+  responsiveDivSizes(form.numLifts.value);
+})
