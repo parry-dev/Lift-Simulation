@@ -8,6 +8,7 @@ body {
 }
 
 .form-container {
+  position: relative;
   margin: 0px auto;
   margin-top: 20px;
   padding: 20px;
@@ -35,7 +36,6 @@ input[type="number"] {
   border: 1px solid #ddd;
   border-radius: 4px;
   box-sizing: border-box;
-  z-index: 100 !important;
 }
 
 .error-message {
@@ -54,7 +54,6 @@ button {
   border-radius: 4px;
   cursor: pointer;
   margin-top: 10px;
-  z-index: 100 !important;
 }
 
 button:hover {
@@ -72,6 +71,7 @@ button:hover {
   cursor: pointer;
   margin: 20px auto;
   max-width: 400px;
+  position: relative;
   z-index: 100 !important;
 }
 
