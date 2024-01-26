@@ -70,20 +70,20 @@ function createFloors(numFloors, numLifts) {
 function responsiveDivSizes(numLifts) {
   var liftsContainer = document.getElementById("lifts");
   var liftSimulation = document.getElementById("liftSimulation");
-  if (window.innerWidth >= numLifts*60 + 100) {
-    var mainContainerWidth = numLifts*60 + 100;
-    // console.log("mainContainerWidth 111==>>> ", mainContainerWidth);
+  if (window.innerWidth >= numLifts*70 + 110) {
+    var mainContainerWidth = numLifts*70 + 110;
+    console.log("mainContainerWidth 111==>>> ", mainContainerWidth);
     liftSimulation.style.width = `calc(${mainContainerWidth}px)`;
     var perLiftWidth = 60;
   } else {
-    var perLiftWidth = (window.innerWidth - 100)/numLifts;
-    if (perLiftWidth < 30){
-      var mainContainerWidth = numLifts*30 + 100;
-      // console.log("mainContainerWidth 222==>>> ", mainContainerWidth);
+    var perLiftWidth = (window.innerWidth - 110)/numLifts;
+    if (perLiftWidth < 40){
+      var mainContainerWidth = numLifts*40 + 110;
+      console.log("mainContainerWidth 222==>>> ", mainContainerWidth);
       liftSimulation.style.minWidth = `calc(${mainContainerWidth}px)`;
     } else {
-      var mainContainerWidth = perLiftWidth * numLifts;
-      // console.log("mainContainerWidth 333==>>> ", perLiftWidth * numLifts);
+      var mainContainerWidth = (perLiftWidth) * numLifts + 90;
+      console.log("mainContainerWidth 333==>>> ", perLiftWidth * numLifts);
       liftSimulation.style.width = `calc(${mainContainerWidth}px)`;
     }
   }
@@ -93,7 +93,7 @@ function responsiveDivSizes(numLifts) {
       x[i].style.width = `${perLiftWidth}px`;
   }
   var floorElement = document.getElementById("floor-0");
-  liftsContainer.style.width = `calc(${mainContainerWidth}px - 100px)`;
+  liftsContainer.style.width = `calc(${mainContainerWidth}px - 85px)`;
   var actionButtons = floorElement.querySelector(".actionButtons");
   liftsContainer.style.left = `${actionButtons.offsetLeft + actionButtons.offsetWidth + 20}px`;
 }
@@ -324,10 +324,10 @@ function stimulate() {
     backButton.style.display = "block";
     // createFloors(parseInt(numFloors.value));
     // createLifts(parseInt(numLifts.value));
-
+    document.getElementById("liftSimulation").style.display = "block";
     initLiftSimulation(numFloors.value, numLifts.value);
     responsiveDivSizes(numLifts.value)
-    document.getElementById("liftSimulation").style.display = "block";
+    
   }
 }
 
