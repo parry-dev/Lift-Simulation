@@ -159,9 +159,10 @@ button:hover {
   max-width: 60px;
   min-width: 30px;
   height: 80px;
-  background-color: blue;
+  background-color: #d3d3d3;
   margin-right: 10px;
   display: inline-block;
+  border: #000 1px solid;
 }
 
 .lift-door {
@@ -171,15 +172,16 @@ button:hover {
 }
 
 .lift-door.left {
-  background-color: red;
+  background-image: linear-gradient(to bottom right, #f5f5dc, #fdfd96);
   width: 100%;
   transition: width 2.5s linear;
   right: 0;
 }
 
 .lift-door.right {
-  background-color: yellow;
+  background-image: linear-gradient(to bottom right, #f5f5dc, #fdfd96);
   width: 50%;
   transition: width 2.35s linear;
   right: 0px;
+  border-left: #000 1px solid;
 }

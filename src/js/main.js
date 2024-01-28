@@ -142,6 +142,9 @@ function openDoors(lift, data) {
 }
 
 function closeDoors(lift, data) {
+  if (!data.canClose) {
+    return;
+  }
   var leftDoor = lift.querySelector(".lift-door.left");
   var rightDoor = lift.querySelector(".lift-door.right");
   leftDoor.style.width = "100%";
@@ -180,21 +183,35 @@ function processLiftMovements() {
 
 function redistributeRequests() {
   // Identify overloaded and underloaded lifts
-  let overloadedLifts = liftState.lifts.filter(lift => lift.requestQueue.length > averageRequestsPerLift());
-  let underloadedLifts = liftState.lifts.filter(lift => lift.requestQueue.length < averageRequestsPerLift());
+  let overloadedLifts = liftState.lifts.filter(
+    (lift) => lift.requestQueue.length > averageRequestsPerLift()
+  );
+  let underloadedLifts = liftState.lifts.filter(
+    (lift) => lift.requestQueue.length < averageRequestsPerLift()
+  );
 
   // Function to calculate the average number of requests per lift
   function averageRequestsPerLift() {
-    let totalRequests = liftState.lifts.reduce((acc, lift) => acc + lift.requestQueue.length, 0);
+    let totalRequests = liftState.lifts.reduce(
+      (acc, lift) => acc + lift.requestQueue.length,
+      0
+    );
     return totalRequests / liftState.lifts.length;
   }
 
   // Attempt to redistribute requests from overloaded to underloaded lifts
-  overloadedLifts.forEach(overloadedLift => {
-    while (overloadedLift.requestQueue.length > averageRequestsPerLift() && underloadedLifts.length > 0) {
+  overloadedLifts.forEach((overloadedLift) => {
+    while (
+      overloadedLift.requestQueue.length > averageRequestsPerLift() &&
+      underloadedLifts.length > 0
+    ) {
       // Find the most suitable underloaded lift for the next request in the overloaded lift
       let nextRequest = overloadedLift.requestQueue[0]; // Consider the first request in the queue
-      let suitableUnderloadedLift = findMostSuitableLiftForRedistribution(nextRequest.floor, nextRequest.direction, underloadedLifts);
+      let suitableUnderloadedLift = findMostSuitableLiftForRedistribution(
+        nextRequest.floor,
+        nextRequest.direction,
+        underloadedLifts
+      );
 
       if (suitableUnderloadedLift) {
         // Move the request from the overloaded lift to the suitable underloaded lift
@@ -202,7 +219,9 @@ function redistributeRequests() {
         overloadedLift.requestQueue.shift(); // Remove the request from the overloaded lift
 
         // Update the underloaded lifts list in case the selected lift is now considered overloaded
-        underloadedLifts = underloadedLifts.filter(lift => lift.requestQueue.length < averageRequestsPerLift());
+        underloadedLifts = underloadedLifts.filter(
+          (lift) => lift.requestQueue.length < averageRequestsPerLift()
+        );
       } else {
         // If no suitable underloaded lift is found for the request, break the loop
         break;
@@ -212,51 +231,72 @@ function redistributeRequests() {
 }
 
 // Function to find the most suitable lift for redistribution among underloaded lifts
-function findMostSuitableLiftForRedistribution(requestFloor, direction, underloadedLifts) {
-  return underloadedLifts.filter(lift => !lift.isMoving && !lift.isDoorOpen).reduce((prev, curr) => {
-    return Math.abs(curr.currentFloor - requestFloor) < Math.abs(prev.currentFloor - requestFloor) ? curr : prev;
-  }, underloadedLifts[0]); // Default to the first underloaded lift if none are idle
+function findMostSuitableLiftForRedistribution(
+  requestFloor,
+  direction,
+  underloadedLifts
+) {
+  return underloadedLifts
+    .filter((lift) => !lift.isMoving && !lift.isDoorOpen)
+    .reduce((prev, curr) => {
+      return Math.abs(curr.currentFloor - requestFloor) <
+        Math.abs(prev.currentFloor - requestFloor)
+        ? curr
+        : prev;
+    }, underloadedLifts[0]); // Default to the first underloaded lift if none are idle
 }
 
 function findMostSuitableLift(requestFloor, direction) {
   // Start by filtering for idle lifts
-  let idleLifts = liftState.lifts.filter(lift => !lift.isMoving && !lift.isDoorOpen);
+  let idleLifts = liftState.lifts.filter(
+    (lift) => !lift.isMoving && !lift.isDoorOpen
+  );
 
   // If there are idle lifts, choose the closest one to the request floor
   if (idleLifts.length > 0) {
     return idleLifts.reduce((prev, curr) => {
-      return Math.abs(curr.currentFloor - requestFloor) < Math.abs(prev.currentFloor - requestFloor) ? curr : prev;
+      return Math.abs(curr.currentFloor - requestFloor) <
+        Math.abs(prev.currentFloor - requestFloor)
+        ? curr
+        : prev;
     });
   }
 
   // If no idle lifts are available, sort all lifts by the number of requests in their queue
-  let sortedLifts = [...liftState.lifts].sort((a, b) => a.requestQueue.length - b.requestQueue.length);
+  let sortedLifts = [...liftState.lifts].sort(
+    (a, b) => a.requestQueue.length - b.requestQueue.length
+  );
 
   // Take the first half of the sorted lifts with fewer requests
   let halfLifts = sortedLifts.slice(0, Math.ceil(sortedLifts.length / 2));
 
   // Filter the first half lifts for those that can service the request
-  let suitableLifts = halfLifts.filter(lift => {
-    return lift.direction === direction && (
-      (direction === "up" && lift.targetFloor <= requestFloor) ||
-      (direction === "down" && lift.targetFloor >= requestFloor)
+  let suitableLifts = halfLifts.filter((lift) => {
+    return (
+      lift.direction === direction &&
+      ((direction === "up" && lift.targetFloor <= requestFloor) ||
+        (direction === "down" && lift.targetFloor >= requestFloor))
     );
   });
 
   // Choose the closest suitable lift from the half with fewer requests
   if (suitableLifts.length > 0) {
     return suitableLifts.reduce((prev, curr) => {
-      return Math.abs(curr.targetFloor - requestFloor) < Math.abs(prev.targetFloor - requestFloor) ? curr : prev;
+      return Math.abs(curr.targetFloor - requestFloor) <
+        Math.abs(prev.targetFloor - requestFloor)
+        ? curr
+        : prev;
     });
   }
 
   // As a fallback, assign the request to the nearest lift based on the target floor
   return liftState.lifts.reduce((prev, curr) => {
-    return Math.abs(curr.targetFloor - requestFloor) < Math.abs(prev.targetFloor - requestFloor) ? curr : prev;
+    return Math.abs(curr.targetFloor - requestFloor) <
+      Math.abs(prev.targetFloor - requestFloor)
+      ? curr
+      : prev;
   });
 }
-
-
 
 function handleRequest(floorId, direction) {
   // const floor = liftState.floors.find((f) => f.id === floorId);
@@ -268,7 +308,19 @@ function handleRequest(floorId, direction) {
       (req) => req.floor === floorId && req.direction === direction
     );
     if (!requestExists) {
-      suitableLift.requestQueue.push({ floor: floorId, direction: direction });
+      if (suitableLift.targetFloor === floorId && !suitableLift.isMoving) {
+        moveLift(
+          suitableLift,
+          suitableLift.targetFloor,
+          suitableLift.direction,
+          true
+        );
+      } else {
+        suitableLift.requestQueue.push({
+          floor: floorId,
+          direction: direction,
+        });
+      }
       // console.log(
       //   `Request added to Lift ${suitableLift.id} for Floor ${floorId} going ${direction}`
       // );
@@ -278,18 +330,28 @@ function handleRequest(floorId, direction) {
   }
 }
 
-function moveLift(lift, floorNumber, direction) {
-  if (lift.isDoorOpen) {
-    console.log("Doors are not closed. Lift cannot move.");
-    return;
-  }
-
+function moveLift(lift, floorNumber, direction, sameFloor = false) {
   var selectedLiftElement = document.getElementById("lift-" + lift.id);
   var floorElement = document.getElementById("floor-" + floorNumber);
   if (!selectedLiftElement || !floorElement) {
     console.error("Selected lift or floor element does not exist in the DOM.");
     return;
   }
+  if (sameFloor) {
+    lift.canClose = false;
+    openDoors(selectedLiftElement, lift);
+
+    setTimeout(function () {
+      lift.canClose = true;
+      closeDoors(selectedLiftElement, lift);
+    }, 2500);
+    return;
+  }
+  if (lift.isDoorOpen) {
+    console.log("Doors are not closed. Lift cannot move.");
+    return;
+  }
+
   lift.isMoving = true;
   lift.direction = direction;
   lift.targetFloor = floorNumber;
@@ -310,10 +372,12 @@ function moveLift(lift, floorNumber, direction) {
 
   // Open and close doors after reaching the floor
   setTimeout(function () {
+    lift.canClose = false;
     openDoors(selectedLiftElement, lift);
   }, totalTimeToMove);
 
   setTimeout(function () {
+    lift.canClose = true;
     closeDoors(selectedLiftElement, lift);
   }, totalTimeToMove + 2500); // Wait for the time to move plus 2.5s for the doors
 
@@ -349,6 +413,7 @@ function initLiftSimulation(numFloors, numLifts) {
       isMoving: false,
       isDoorOpen: false,
       direction: null,
+      canClose: false,
       doorsState: "",
       requestQueue: [],
     });
@@ -413,8 +478,8 @@ function goBack() {
   formContainer.style.display = "block";
   backButton.style.display = "none";
 }
-initLiftSimulation(10, 6);
-responsiveDivSizes(6);
+// initLiftSimulation(10, 6);
+// responsiveDivSizes(6);
 
 window.addEventListener("resize", function (event) {
   var form = document.getElementById("liftsForm");
