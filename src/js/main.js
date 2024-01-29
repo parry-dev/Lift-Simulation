@@ -303,12 +303,15 @@ function findMostSuitableLift(requestFloor, direction) {
 function handleRequest(floorId, direction) {
   // const floor = liftState.floors.find((f) => f.id === floorId);
 
-  let sameRequestLifts = liftState.lifts.filter(
-    (lift) => lift.currentRequest && lift.currentRequest.floorNumber === floorId && lift.currentRequest.direction === direction
+  let duplicateRequests = liftState.lifts.filter(
+    (lift) => {
+      let sameCurrent = lift.currentRequest && lift.currentRequest.floorNumber === floorId && lift.currentRequest.direction === direction;
+      let sameRequestInQueue = lift.requestQueue.filter((request) => request.floor === floorId && request.direction === direction);
+      return sameCurrent || sameRequestInQueue.length > 0;
+    }
   );
 
-  if (sameRequestLifts.length > 0) {
-    console.log("sameRequestLifts ==>>> ", sameRequestLifts)
+  if (duplicateRequests.length > 0) {
     return;
   }
 
