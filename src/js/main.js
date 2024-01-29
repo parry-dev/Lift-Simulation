@@ -126,6 +126,7 @@ function createLifts(numLifts) {
 }
 
 function openDoors(lift, data) {
+  data.currentRequest = null;
   data.isDoorOpen = true;
   var leftDoor = lift.querySelector(".lift-door.left");
   var rightDoor = lift.querySelector(".lift-door.right");
@@ -142,16 +143,17 @@ function openDoors(lift, data) {
 }
 
 function closeDoors(lift, data) {
-  if (!data.canClose) {
-    return;
+  if (data.canClose) {
+    data.isDoorOpen = true;
+    var leftDoor = lift.querySelector(".lift-door.left");
+    var rightDoor = lift.querySelector(".lift-door.right");
+    leftDoor.style.width = "100%";
+    rightDoor.style.width = "50%";
+    let doorFlagTimeOut = setTimeout(function () {
+      data.isDoorOpen = false;
+    }, 2500);
+    data.doorFlagTimeOuts.push(doorFlagTimeOut);
   }
-  var leftDoor = lift.querySelector(".lift-door.left");
-  var rightDoor = lift.querySelector(".lift-door.right");
-  leftDoor.style.width = "100%";
-  rightDoor.style.width = "50%";
-  setTimeout(function () {
-    data.isDoorOpen = false;
-  }, 2500);
 }
 
 function processLiftMovements() {
@@ -301,6 +303,15 @@ function findMostSuitableLift(requestFloor, direction) {
 function handleRequest(floorId, direction) {
   // const floor = liftState.floors.find((f) => f.id === floorId);
 
+  let sameRequestLifts = liftState.lifts.filter(
+    (lift) => lift.currentRequest && lift.currentRequest.floorNumber === floorId && lift.currentRequest.direction === direction
+  );
+
+  if (sameRequestLifts.length > 0) {
+    console.log("sameRequestLifts ==>>> ", sameRequestLifts)
+    return;
+  }
+
   // Find the most suitable lift and add the request
   const suitableLift = findMostSuitableLift(floorId, direction);
   if (suitableLift) {
@@ -309,12 +320,34 @@ function handleRequest(floorId, direction) {
     );
     if (!requestExists) {
       if (suitableLift.targetFloor === floorId && !suitableLift.isMoving) {
-        moveLift(
-          suitableLift,
-          suitableLift.targetFloor,
-          suitableLift.direction,
-          true
+        let sameFloorLifts = liftState.lifts.filter(
+          (lift) => lift.currentFloor === floorId
         );
+        sameFloorLifts.forEach((lift) => {
+          var selectedLiftElement = document.getElementById("lift-" + lift.id);
+          lift.canClose = false;
+          openDoors(selectedLiftElement, lift);
+          lift.doorFlagTimeOuts.forEach((timeOut) => {
+            clearTimeout(timeOut);
+          });
+          lift.closeDoorTimeouts.forEach((timeOut) => {
+            clearTimeout(timeOut);
+          });
+
+          let closeDoorTimeOut = setTimeout(function () {
+            lift.canClose = true;
+            closeDoors(selectedLiftElement, lift);
+          }, 2500);
+          setTimeout(function () {
+            lift.closeDoorTimeouts = [closeDoorTimeOut];
+          }, 50);
+        });
+        return;
+      } else if (
+        suitableLift.targetFloor === floorId &&
+        (suitableLift.isMoving || suitableLift.isDoorOpen)
+      ) {
+        return;
       } else {
         suitableLift.requestQueue.push({
           floor: floorId,
@@ -330,27 +363,18 @@ function handleRequest(floorId, direction) {
   }
 }
 
-function moveLift(lift, floorNumber, direction, sameFloor = false) {
+function moveLift(lift, floorNumber, direction) {
   var selectedLiftElement = document.getElementById("lift-" + lift.id);
   var floorElement = document.getElementById("floor-" + floorNumber);
   if (!selectedLiftElement || !floorElement) {
     console.error("Selected lift or floor element does not exist in the DOM.");
     return;
   }
-  if (sameFloor) {
-    lift.canClose = false;
-    openDoors(selectedLiftElement, lift);
-
-    setTimeout(function () {
-      lift.canClose = true;
-      closeDoors(selectedLiftElement, lift);
-    }, 2500);
-    return;
-  }
   if (lift.isDoorOpen) {
     console.log("Doors are not closed. Lift cannot move.");
     return;
   }
+  lift.currentRequest = {floorNumber: floorNumber, direction: direction}
 
   lift.isMoving = true;
   lift.direction = direction;
@@ -374,12 +398,21 @@ function moveLift(lift, floorNumber, direction, sameFloor = false) {
   setTimeout(function () {
     lift.canClose = false;
     openDoors(selectedLiftElement, lift);
+    lift.doorFlagTimeOuts.forEach((timeOut) => {
+      clearTimeout(timeOut);
+    });
+    lift.closeDoorTimeouts.forEach((timeOut) => {
+      clearTimeout(timeOut);
+    });
   }, totalTimeToMove);
 
-  setTimeout(function () {
+  let closeDoorTimeOut = setTimeout(function () {
     lift.canClose = true;
     closeDoors(selectedLiftElement, lift);
   }, totalTimeToMove + 2500); // Wait for the time to move plus 2.5s for the doors
+  setTimeout(function () {
+    lift.closeDoorTimeouts = [closeDoorTimeOut];
+  }, totalTimeToMove + 50);
 
   // Update the lift's current floor once it has reached the target
   setTimeout(function () {
@@ -413,7 +446,10 @@ function initLiftSimulation(numFloors, numLifts) {
       isMoving: false,
       isDoorOpen: false,
       direction: null,
+      currentRequest: null,
       canClose: false,
+      doorFlagTimeOuts: [],
+      closeDoorTimeouts: [],
       doorsState: "",
       requestQueue: [],
     });
