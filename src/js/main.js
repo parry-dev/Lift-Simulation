@@ -175,7 +175,7 @@ function processLiftMovements() {
   liftState.redistribute = !liftState.redistribute;
 
   if (liftState.redistribute) {
-    setTimeout(redistributeRequests, 2);
+    setTimeout(redistributeRequests, 505);
   }
 
   if (!liftState.end) {
@@ -372,6 +372,9 @@ function moveLift(lift, floorNumber, direction) {
   }
   if (lift.isDoorOpen) {
     console.log("Doors are not closed. Lift cannot move.");
+    return;
+  }
+  if (lift.currentFloor === floorNumber) {
     return;
   }
   lift.currentRequest = {floorNumber: floorNumber, direction: direction}
