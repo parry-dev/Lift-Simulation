@@ -6,7 +6,7 @@ var liftState = {
   redistribute: false,
 };
 
-function createFloors(numFloors, numLifts) {
+function createFloors(numFloors) {
   var floorsContainer = document.getElementById("floors");
   floorsContainer.innerHTML = "";
 
@@ -223,8 +223,8 @@ function findMostSuitableLiftForRedistribution(
   return underloadedLifts
     .filter((lift) => !lift.isMoving && !lift.isDoorOpen)
     .reduce((prev, curr) => {
-      return Math.abs(curr.currentFloor - requestFloor) <
-        Math.abs(prev.currentFloor - requestFloor)
+      return Math.abs(curr.targetFloor - requestFloor) <
+        Math.abs(prev.targetFloor - requestFloor)
         ? curr
         : prev;
     }, underloadedLifts[0]); // Default to the first underloaded lift if none are idle
@@ -305,28 +305,28 @@ function handleRequest(floorId, direction) {
     );
     if (!requestExists) {
       if (suitableLift.targetFloor === floorId && !suitableLift.isMoving) {
-        let sameFloorLifts = liftState.lifts.filter(
-          (lift) => lift.currentFloor === floorId
-        );
-        sameFloorLifts.forEach((lift) => {
-          var selectedLiftElement = document.getElementById("lift-" + lift.id);
-          lift.canClose = false;
-          openDoors(selectedLiftElement, lift);
-          lift.doorFlagTimeOuts.forEach((timeOut) => {
-            clearTimeout(timeOut);
-          });
-          lift.closeDoorTimeouts.forEach((timeOut) => {
-            clearTimeout(timeOut);
-          });
-
-          let closeDoorTimeOut = setTimeout(function () {
-            lift.canClose = true;
-            closeDoors(selectedLiftElement, lift);
-          }, 2500);
-          setTimeout(function () {
-            lift.closeDoorTimeouts = [closeDoorTimeOut];
-          }, 50);
+        // let sameFloorLifts = liftState.lifts.filter(
+        //   (lift) => lift.currentFloor === floorId
+        // );
+        // sameFloorLifts.forEach((lift) => {
+        var selectedLiftElement = document.getElementById("lift-" + suitableLift.id);
+        suitableLift.canClose = false;
+        openDoors(selectedLiftElement, suitableLift);
+        suitableLift.doorFlagTimeOuts.forEach((timeOut) => {
+          clearTimeout(timeOut);
         });
+        suitableLift.closeDoorTimeouts.forEach((timeOut) => {
+          clearTimeout(timeOut);
+        });
+
+        let closeDoorTimeOut = setTimeout(function () {
+          suitableLift.canClose = true;
+          closeDoors(selectedLiftElement, suitableLift);
+        }, 2500);
+        setTimeout(function () {
+          suitableLift.closeDoorTimeouts = [closeDoorTimeOut];
+        }, 50);
+        // });
         return;
       } else if (
         suitableLift.targetFloor === floorId &&
@@ -412,8 +412,10 @@ function moveLift(lift, floorNumber, direction) {
 
 // Initialization function to create lift objects in the liftState
 function initLiftSimulation(numFloors, numLifts) {
-  createFloors(numFloors, numLifts);
+  createFloors(numFloors);
+  if(numFloors > 1) {
   createLifts(numLifts);
+  }
 
   liftState.floors = [];
   for (let i = 0; i < numFloors; i++) {
@@ -426,21 +428,24 @@ function initLiftSimulation(numFloors, numLifts) {
   }
 
   liftState.lifts = [];
-  for (let i = 0; i < numLifts; i++) {
-    liftState.lifts.push({
-      id: i,
-      currentFloor: 0,
-      targetFloor: 0,
-      isMoving: false,
-      isDoorOpen: false,
-      direction: null,
-      currentRequest: null,
-      canClose: false,
-      doorFlagTimeOuts: [],
-      closeDoorTimeouts: [],
-      doorsState: "",
-      requestQueue: [],
-    });
+
+  if(numFloors > 1) {
+    for (let i = 0; i < numLifts; i++) {
+      liftState.lifts.push({
+        id: i,
+        currentFloor: 0,
+        targetFloor: 0,
+        isMoving: false,
+        isDoorOpen: false,
+        direction: null,
+        currentRequest: null,
+        canClose: false,
+        doorFlagTimeOuts: [],
+        closeDoorTimeouts: [],
+        doorsState: "",
+        requestQueue: [],
+      });
+    }
   }
 
   processLiftMovements();
@@ -481,8 +486,6 @@ function stimulate() {
     );
     formContainer.style.display = "none";
     backButton.style.display = "block";
-    // createFloors(parseInt(numFloors.value));
-    // createLifts(parseInt(numLifts.value));
     liftState.end = false;
     document.getElementById("liftSimulation").style.display = "block";
     initLiftSimulation(numFloors.value, numLifts.value);
